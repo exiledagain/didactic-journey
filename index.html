@@ -1,10 +1,88 @@
 <!doctype html>
 <html>
   <head>
-    <title>Korean <> Romanization Helper</title>
+    <meta charset="utf8">
+    <title>Korean &lt;&gt; Romanization Helper</title>
     <link rel="shortcut icon" type="image/png" href="https://raw.githubusercontent.com/exiledagain/didactic-journey/main/favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+      body {
+        background-color: rgb(23, 39, 63);
+        color: silver;
+        font-family: 'Noto Sans KR', sans-serif;
+      }
+
+      .self-center {
+        margin: auto;
+        max-width: 1300px;
+        width: 95%;
+      }
+
+      .centered-items {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 3em;
+      }
+
+      .text-center {
+        text-align: center;
+      }
+
+      .io {
+        color: inherit;
+        background-color: inherit;
+        font-family: inherit;
+        height: 10em;
+        width: 100%;
+        resize: none;
+        outline: none;
+        font-size: larger;
+        box-sizing: border-box;
+        border: none;
+        position: relative;
+      }
+
+      .fixed-io {
+        width: 95%;
+        border: 2px silver solid;
+        padding: 8px 8px 8px 8px;
+      }
+
+      .clear-text {
+        position: absolute;
+        box-sizing: border-box;
+        right: calc(17% + 16px);
+        z-index: 100;
+        color: inherit;
+        background: inherit;
+        border: none;
+        font-family: inherit;
+        font-size: xx-large;
+      }
+
+      .hidden {
+        opacity: 0;
+      }
+    </style>
   </head>
   <body>
-    <script type="text/plain" src="https://raw.githubusercontent.com/exiledagain/didactic-journey/main/main.js"></script>
+    <div class="self-center centered-items">
+      <p class="text-center">Romanize 한글 or Reverse Romanize</p>      
+      <div class="fixed-io">
+        <textarea id="input" style="z-index: 10;" class="io" placeholder="Type 한글 or Romanization here"></textarea>
+        <button class="clear-text hidden">&#xFF38;</button>
+      </div>
+      <div class="fixed-io">
+        <textarea id="output" class="io" placeholder="Enter text above..." readonly></textarea>
+      </div>
+    </div>
+    <script>
+      fetch('https://raw.githubusercontent.com/exiledagain/didactic-journey/main/main.js').then(response => response.text().then(eval))
+    </script>
+    <script src="main.js"></script>
   </body>
 </html>
