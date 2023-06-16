@@ -136,7 +136,7 @@ function TransformRoughRoman (string) {
         vowelUnguarded = true
         break
       case 'tail':
-        if (ch.text.length > 1 && i + 1 < list.length && list[i + 1].type === 'vowel') {
+        if (ch.text.length > 1 && i + 1 < list.length && list[i + 1].type === 'vowel' && InverseTailJamo[ch.text[0]]) {
           res.push(InverseTailJamo[ch.text[0]])
           res.push(InverseLeadJamo[ch.text[1]])
           vowelUnguarded = false
