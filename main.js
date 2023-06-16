@@ -141,8 +141,13 @@ function TransformRoughRoman (string) {
           res.push(InverseLeadJamo[ch.text[1]])
           vowelUnguarded = false
         } else {
-          res.push(InverseTailJamo[ch.text])
-          vowelUnguarded = true
+          if (i + 1 < list.length && list[i + 1].type === 'vowel') {
+            res.push(InverseLeadJamo[ch.text])
+            vowelUnguarded = false
+          } else {
+            res.push(InverseTailJamo[ch.text])
+            vowelUnguarded = true
+          }
         }
         break
       case 'hyphen':
