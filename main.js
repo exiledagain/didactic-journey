@@ -115,7 +115,7 @@ function TransformHangulUnique (string) {
 }
 
 function TransformRoughRoman (string) {
-  const list = window.ParseHangeul(string)
+  const list = window.ParseHangeul(string.toLowerCase())
   if (list.length === 0) {
     return string
   }
