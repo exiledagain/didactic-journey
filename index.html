@@ -44,6 +44,9 @@
         box-sizing: border-box;
         border: none;
         position: relative;
+        overflow-wrap: normal;
+        overflow-x: scroll;
+        white-space: pre;
       }
 
       .fixed-io {
@@ -73,11 +76,11 @@
     <div class="self-center centered-items">
       <p class="text-center">Romanize 한글 or Reverse Romanize</p>      
       <div class="fixed-io">
-        <textarea id="input" class="io" placeholder="Type 한글 or Romanization here"></textarea>
+        <textarea id="input" class="io" placeholder="Type 한글 or Romanization here" wrap="off"></textarea>
         <button class="clear-text hidden">&#xFF38;</button>
       </div>
       <div class="fixed-io">
-        <textarea id="output" class="io" placeholder="Enter text above..." readonly></textarea>
+        <textarea id="output" class="io" placeholder="Enter text above..." wrap="off" readonly></textarea>
       </div>
     </div>
     <script src="hangeul-parser.js"></script>
