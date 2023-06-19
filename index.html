@@ -1,89 +1,257 @@
-<!doctype html>
-<html>
-  <head>
-    <meta charset="utf8">
-    <title>Korean &lt;&gt; Romanization Helper</title>
-    <link rel="shortcut icon" type="image/png" href="https://raw.githubusercontent.com/exiledagain/didactic-journey/main/favicon.ico">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-      body {
-        background-color: rgb(23, 39, 63);
-        color: silver;
-        font-family: 'Noto Sans KR', sans-serif;
-      }
+function IsHangulSyllable (string) {
+  return string.length === 1 && string.codePointAt(0) >= 0xAC00 && string.codePointAt(0) <= 0xD7A3
+}
 
-      .self-center {
-        margin: auto;
-        max-width: 1300px;
-        width: 95%;
-      }
+const JamoTable = {
+  ᄀ: 'g',
+  ᄁ: { text: 'kk', double: 'ᄁ' },
+  ᄂ: 'n',
+  ᄃ: 'd',
+  ᄄ: { text: 'tt', double: 'ᄃ' },
+  ᄅ: 'l',
+  ᄆ: 'm',
+  ᄇ: 'b',
+  ᄈ: { text: 'pp', double: 'ᄇ' },
+  ᄉ: 's',
+  ᄊ: { text: 'ss', double: 'ᄉ' },
+  ᄋ: '',
+  ᄌ: 'j',
+  ᄍ: { text: 'jj', double: 'ᄌ' },
+  ᄎ: 'ch',
+  ᄏ: 'k',
+  ᄐ: 't',
+  ᄑ: 'p',
+  ᄒ: 'h',
 
-      .centered-items {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        gap: 3em;
-      }
+  ᅡ: 'a',
+  ᅢ: 'ae',
+  ᅣ: 'ya',
+  ᅤ: 'yae',
+  ᅥ: 'eo',
+  ᅦ: 'e',
+  ᅧ: 'yeo',
+  ᅨ: 'ye',
+  ᅩ: 'o',
+  ᅪ: 'wa',
+  ᅫ: 'wae',
+  ᅬ: 'oe',
+  ᅭ: 'yo',
+  ᅮ: 'u',
+  ᅯ: 'wo',
+  ᅰ: 'we',
+  ᅱ: 'wi',
+  ᅲ: 'yu',
+  ᅳ: 'eu',
+  ᅴ: 'ui',
+  ᅵ: 'i',
 
-      .text-center {
-        text-align: center;
-      }
+  ᆨ: 'g',
+  ᆩ: { text: 'gg', first: 'ᆨ', second: 'ᆨ' },
+  ᆪ: { text: 'gs', first: 'ᆨ', second: 'ᆺ' },
+  ᆫ: 'n',
+  ᆬ: { text: 'nj', first: 'ᆫ', second: 'ᆽ' },
+  ᆭ: { text: 'nh', first: 'ᆫ', second: 'ᇂ' },
+  ᆮ: 'd',
+  ᆯ: 'l',
+  ᆰ: { text: 'lg', first: 'ᆯ', second: 'ᆨ' },
+  ᆱ: { text: 'lm', first: 'ᆯ', second: 'ᆷ' },
+  ᆲ: { text: 'lb', first: 'ᆯ', second: 'ᆸ' },
+  ᆳ: { text: 'ls', first: 'ᆯ', second: 'ᆺ' },
+  ᆴ: { text: 'lt', first: 'ᆯ', second: 'ᇀ' },
+  ᆵ: { text: 'lp', first: 'ᆯ', second: 'ᇁ' },
+  ᆶ: { text: 'lh', first: 'ᆯ', second: 'ᇂ' },
+  ᆷ: 'm',
+  ᆸ: 'b',
+  ᆹ: { text: 'bs', first: 'ᆸ', second: 'ᆺ' },
+  ᆺ: 's',
+  ᆻ: { text: 'ss', first: 'ᆺ', second: 'ᆺ' },
+  ᆼ: { text: 'ng', split: true },
+  ᆽ: 'j',
+  ᆾ: 'ch',
+  ᆿ: 'k',
+  ᇀ: 't',
+  ᇁ: 'p',
+  ᇂ: 'h'
+}
+const InverseVowelJamo = {}
+const InverseLeadJamo = {}
+const InverseTailJamo = {}
 
-      .io {
-        color: inherit;
-        background-color: inherit;
-        font-family: inherit;
-        height: 15em;
-        width: 100%;
-        resize: none;
-        outline: none;
-        font-size: larger;
-        box-sizing: border-box;
-        border: none;
-        position: relative;
-        overflow-wrap: normal;
-        overflow-x: scroll;
-        white-space: pre;
-      }
+const ConfusionMap = new Map()
+function IsConfusing (a, b) {
+  if (ConfusionMap.has(a.at(-1))) {
+    return ConfusionMap.get(a.at(-1)).has(b.at(0))
+  }
+  return false
+}
 
-      .fixed-io {
-        width: 95%;
-        border: 2px silver solid;
-        padding: 8px 8px 8px 8px;
+function TransformHangulUnique (string) {
+  const parts = []
+  for (let i = 0, last; i < string.length; ++i) {
+    const ch = string[i]
+    if (IsHangulSyllable(ch)) {
+      const current = ch.normalize('NFD')
+      if (last && IsConfusing(last, current) && current[0] !== 'ᄋ') {
+        parts.push('-')
       }
+      for (const jamo of current) {
+        if (!(jamo in JamoTable)) {
+          throw new Error(jamo)
+        }
+        parts.push(JamoTable[jamo].text)
+      }
+      if (parts.length === current.length && current[0] === 'ᄋ') {
+        parts[0] = ''
+      }
+      last = current
+    } else {
+      parts.push(ch)
+      last = undefined
+    }
+  }
+  return parts.join('')
+}
 
-      .clear-text {
-        position: absolute;
-        box-sizing: border-box;
-        right: calc(17% + 16px);
-        z-index: 100;
-        color: inherit;
-        background: inherit;
-        border: none;
-        font-family: inherit;
-        font-size: xx-large;
-      }
+function TransformRoughRoman (string) {
+  const list = window.ParseHangeul(string.toLowerCase())
+  if (list.length === 0) {
+    return string
+  }
+  let vowelUnguarded = true
+  const res = []
+  for (let i = 0; i < list.length; ++i) {
+    const ch = list[i]
+    switch (ch.type) {
+      case 'lead':
+        res.push(InverseLeadJamo[ch.text])
+        vowelUnguarded = false
+        break
+      case 'vowel':
+        if (vowelUnguarded) {
+          res.push('ᄋ')
+        }
+        res.push(InverseVowelJamo[ch.text])
+        vowelUnguarded = true
+        break
+      case 'tail':
+        if (ch.text.length > 1 && i + 1 < list.length && list[i + 1].type === 'vowel' && InverseTailJamo[ch.text[0]]) {
+          res.push(InverseTailJamo[ch.text[0]])
+          res.push(InverseLeadJamo[ch.text[1]])
+          vowelUnguarded = false
+        } else {
+          if (i + 1 < list.length && list[i + 1].type === 'vowel') {
+            res.push(InverseLeadJamo[ch.text])
+            vowelUnguarded = false
+          } else {
+            res.push(InverseTailJamo[ch.text])
+            vowelUnguarded = true
+          }
+        }
+        break
+      case 'hyphen':
+        break
+      default:
+        return string
+    }
+  }
+  return res.join('')
+}
 
-      .hidden {
-        opacity: 0;
+function Transform (string) {
+  if (IsHangulSyllable(string[0])) {
+    return TransformHangulUnique(string)
+  }
+  return TransformRoughRoman(string)
+}
+
+function CompileText (string) {
+  const ImportantSectionRegex = /(?:[\uAC00-\uD7A3]+|[abcdefghijklmnoprstuwy]+(?:-?[abcdefghijklmnoprstuwy]+)*)/igu
+  return string.normalize().replace(ImportantSectionRegex, Transform).normalize()
+}
+
+function DoIO () {
+  const input = document.querySelector('#input')
+  const output = document.querySelector('#output')
+  const text = input.value.normalize()
+  output.value = CompileText(text)
+}
+
+function Setup () {
+  const input = document.querySelector('#input')
+  const events = [
+    'change',
+    'input'
+  ]
+  events.forEach(el => input.addEventListener(el, DoIO))
+  const strings = []
+  for (let i = 0xAC00; i <= 0xD7A3; ++i) {
+    strings.push(String.fromCodePoint(i))
+  }
+  for (const jamo in JamoTable) {
+    if (typeof JamoTable[jamo] !== 'object') {
+      JamoTable[jamo] = {
+        self: jamo,
+        text: JamoTable[jamo]
       }
-    </style>
-  </head>
-  <body>
-    <div class="self-center centered-items">
-      <p class="text-center">Romanize 한글 or Reverse Romanize</p>      
-      <div class="fixed-io">
-        <textarea id="input" class="io" placeholder="Type 한글 or Romanization here" wrap="off"></textarea>
-        <button class="clear-text hidden">&#xFF38;</button>
-      </div>
-      <div class="fixed-io">
-        <textarea id="output" class="io" placeholder="Enter text above..." wrap="off" readonly></textarea>
-      </div>
-    </div>
-    <script src="hangeul-parser.js"></script>
-    <script src="main.js"></script>
-  </body>
-</html>
+    } else {
+      JamoTable[jamo].self = jamo
+    }
+  }
+  for (let a = 0x1100; a <= 0x1112; ++a) {
+    const ch = String.fromCodePoint(a)
+    JamoTable[ch].leading = true
+    InverseLeadJamo[JamoTable[ch].text] = ch
+  }
+  InverseLeadJamo.r = 'ᄅ'
+  for (let b = 0x1161; b <= 0x1175; ++b) {
+    const ch = String.fromCodePoint(b)
+    JamoTable[ch].vowel = true
+    InverseVowelJamo[JamoTable[ch].text] = ch
+  }
+  for (let c = 0x11A8; c <= 0x11C2; ++c) {
+    const ch = String.fromCodePoint(c)
+    JamoTable[ch].trailing = true
+    InverseTailJamo[JamoTable[ch].text] = ch
+    if (JamoTable[ch].text.indexOf('l') >= 0) {
+      InverseTailJamo[JamoTable[ch].text.replace('l', 'r')] = ch
+    }
+  }
+  const tails = Object.values(JamoTable).filter(el => el.vowel || el.trailing)
+  const heads = Object.values(JamoTable).filter(el => el.vowel || el.leading)
+  JamoTable['ᄋ'].text = '-'
+  const joinMap = new Map()
+  tails.forEach(tail => {
+    heads.forEach(head => {
+      const el = `${tail.text}${head.text === 'ᄋ' ? '' : head.text}`
+      const array = (joinMap.get(el) ?? [])
+      array.push({
+        text: el,
+        tail,
+        head
+      })
+      joinMap.set(el, array)
+      if (tail.vowel && head.double) {
+        const el = head.text
+        const array = (joinMap.get(el) ?? [])
+        array.push({
+          text: el,
+          tail,
+          head
+        })
+        joinMap.set(el, array)
+      }
+    })
+  })
+  for (const [, v] of joinMap) {
+    if (v.length > 1) {
+      for (const el of v) {
+        const set = ConfusionMap.get(el.tail.self) ?? new Set()
+        set.add(el.head.self)
+        ConfusionMap.set(el.tail.self, set)
+      }
+    }
+  }
+  InverseLeadJamo['-'] = 'ᄋ'
+}
+
+Setup()
