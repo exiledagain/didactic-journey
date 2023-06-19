@@ -2,8 +2,6 @@ function IsHangulSyllable (string) {
   return string.length === 1 && string.codePointAt(0) >= 0xAC00 && string.codePointAt(0) <= 0xD7A3
 }
 
-const BlockMap = new Map()
-const RomanMap = new Map()
 const JamoTable = {
   ᄀ: 'g',
   ᄁ: { text: 'kk', double: 'ᄁ' },
@@ -189,15 +187,6 @@ function Setup () {
   for (let i = 0xAC00; i <= 0xD7A3; ++i) {
     strings.push(String.fromCodePoint(i))
   }
-  const blockMap = new Map()
-  const offerBlock = array => {
-    const chs = array.map(el => String.fromCodePoint(el))
-    const roman = chs.map(ch => JamoTable[ch].text).join('')
-    const block = chs.join('').normalize()
-    RomanMap.set(roman, block)
-    BlockMap.set(block, roman)
-    blockMap.set(block, roman)
-  }
   for (const jamo in JamoTable) {
     if (typeof JamoTable[jamo] !== 'object') {
       JamoTable[jamo] = {
@@ -225,15 +214,6 @@ function Setup () {
     InverseTailJamo[JamoTable[ch].text] = ch
     if (JamoTable[ch].text.indexOf('l') >= 0) {
       InverseTailJamo[JamoTable[ch].text.replace('l', 'r')] = ch
-    }
-  }
-  // Hangul Syllable Composition Jamo: First Middle Last
-  for (let a = 0x1100; a <= 0x1112; ++a) {
-    for (let b = 0x1161; b <= 0x1175; ++b) {
-      offerBlock([a, b])
-      for (let c = 0x11A8; c <= 0x11C2; ++c) {
-        offerBlock([a, b, c])
-      }
     }
   }
   const tails = Object.values(JamoTable).filter(el => el.vowel || el.trailing)
